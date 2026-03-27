@@ -6,8 +6,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#07101f">
-<title>🏏 Gully Cricket</title>
+<title>🏏 Turf Cricket</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 /* ════════════════════════════════
@@ -691,97 +692,184 @@ canvas { border-radius:var(--r2); width:100%!important; }
   justify-content: center; z-index: 350; padding: 16px;
   overflow-y: auto;
 }
-.share-modal-inner {
-  width: 100%; max-width: 400px;
-}
 
 /* The actual card that gets screenshotted */
+/* ── SHARE CARD ── */
 #shareCard {
-  background: linear-gradient(145deg, #0a1828 0%, #0c2018 60%, #0a1428 100%);
-  border-radius: 20px; padding: 24px 20px 20px;
-  border: 1px solid var(--bd2);
+  background: #07101f;
+  border-radius: 20px; padding: 0;
+  border: 1px solid #243870;
   position: relative; overflow: hidden;
-  margin-bottom: 14px;
+  margin-bottom: 14px; width: 100%;
+  box-sizing: border-box;
 }
+
+/* Top glow */
 #shareCard::before {
-  content: ''; position: absolute; inset: 0;
-  background: radial-gradient(ellipse 80% 60% at 50% 0%, #b4ff4508 0%, transparent 70%);
-  pointer-events: none;
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 180px;
+  background: radial-gradient(ellipse 100% 100% at 50% -10%,
+    rgba(180,255,69,.13) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
 }
+/* Cricket watermark */
+#shareCard::after {
+  content: '🏏'; position: absolute; right: -8px; bottom: 60px;
+  font-size: 100px; opacity: .05; pointer-events: none;
+  transform: rotate(-20deg); z-index: 0;
+}
+#shareCard > * { position: relative; z-index: 1; }
+
+/* HEADER */
 .sc-header {
+  background: linear-gradient(135deg, #0c1e38 0%, #0a1c2e 100%);
+  padding: 12px 16px;
   display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 16px;
+  border-bottom: 1px solid #1c3058;
 }
-.sc-logo { font-size: 28px; }
+.sc-logo { font-size: 20px; }
 .sc-app-name {
-  font-family: var(--ff-d); font-size: 18px; letter-spacing: 3px;
-  background: linear-gradient(130deg, var(--g) 0%, var(--am) 100%);
+  font-family: var(--ff-d); font-size: 15px; letter-spacing: 3px;
+  background: linear-gradient(130deg, #b4ff45 0%, #ffb820 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   background-clip: text;
 }
-.sc-date { font-size: 11px; color: var(--t3); font-weight: 600; }
+.sc-date { font-size: 10px; color: #3d5a80; font-weight: 700; }
 
+/* TEAMS */
 .sc-vs {
-  text-align: center; margin-bottom: 16px;
+  display: flex; align-items: stretch;
+  padding: 16px 16px 12px;
+  gap: 0;
+}
+.sc-team-block {
+  flex: 1; text-align: center; padding: 0 4px;
 }
 .sc-team-name {
-  font-family: var(--ff-d); font-size: 22px; letter-spacing: 2px;
+  font-family: var(--ff-d); font-size: 15px; letter-spacing: 1.5px;
+  line-height: 1.1; margin-bottom: 5px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .sc-team-score {
-  font-family: var(--ff-d); font-size: 44px; letter-spacing: 1px; line-height: 1.1;
+  font-family: var(--ff-d); font-size: 44px; letter-spacing: 1px; line-height: 1;
 }
-.sc-team-meta { font-size: 11px; color: var(--t3); font-weight: 600; }
-.sc-vs-divider {
-  display: flex; align-items: center; gap: 10px; margin: 10px 0;
+.sc-team-overs {
+  font-size: 10px; color: #3d5a80; font-weight: 700; margin-top: 5px;
 }
-.sc-vs-divider::before, .sc-vs-divider::after {
-  content: ''; flex: 1; height: 1px; background: var(--bd2);
+.sc-team-crr {
+  display: inline-block; margin-top: 5px;
+  background: rgba(255,255,255,.06); border-radius: 20px;
+  padding: 2px 8px; font-size: 10px; font-weight: 700; color: #7a9ac4;
 }
-.sc-vs-text { font-family: var(--ff-d); font-size: 14px; color: var(--t3); letter-spacing: 2px; }
+.sc-vs-mid {
+  width: 40px; flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 3px; padding-top: 10px;
+}
+.sc-vs-circle {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(255,255,255,.05); border: 1px solid #243870;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--ff-d); font-size: 12px; color: #3d5a80; letter-spacing: 1px;
+}
+.sc-vs-line { width: 1px; flex: 1; background: #1c3058; }
 
+/* RESULT BANNER */
 .sc-result-banner {
-  background: linear-gradient(90deg, #0c2818, #0f2840);
-  border: 1px solid var(--g); border-radius: 12px;
-  padding: 12px 16px; text-align: center; margin-bottom: 14px;
+  margin: 0 16px 12px;
+  background: linear-gradient(135deg, #0c2818 0%, #0d2038 100%);
+  border: 1px solid #b4ff45; border-radius: 12px;
+  padding: 10px 14px; text-align: center;
+  box-shadow: 0 0 16px rgba(180,255,69,.12);
 }
 .sc-result-winner {
-  font-family: var(--ff-d); font-size: 24px; letter-spacing: 2px; color: var(--g);
+  font-family: var(--ff-d); font-size: 20px; letter-spacing: 2px; color: #b4ff45;
 }
-.sc-result-margin { font-size: 13px; color: var(--t2); font-weight: 600; margin-top: 2px; }
+.sc-result-margin { font-size: 11px; color: #7a9ac4; font-weight: 600; margin-top: 2px; }
 
+/* MAIN STATS — 4 cells */
 .sc-stats-row {
-  display: flex; gap: 8px; margin-bottom: 14px;
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 6px;
+  padding: 0 16px 10px;
 }
 .sc-stat-cell {
-  flex: 1; background: rgba(255,255,255,.04); border: 1px solid var(--bd);
-  border-radius: 10px; padding: 10px 8px; text-align: center;
+  background: rgba(255,255,255,.04); border: 1px solid #1c3058;
+  border-radius: 10px; padding: 9px 4px; text-align: center;
 }
-.sc-stat-val { font-family: var(--ff-d); font-size: 20px; letter-spacing: 1px; color: var(--am); }
-.sc-stat-lbl { font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--t3); margin-top: 2px; }
+.sc-stat-val { font-family: var(--ff-d); font-size: 19px; letter-spacing: 1px; color: #ffb820; }
+.sc-stat-lbl { font-size: 8px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: #3d5a80; margin-top: 2px; }
 
+/* INSIGHTS — 3 cells */
+.sc-insights {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 6px;
+  padding: 0 16px 10px;
+}
+.sc-insight-cell {
+  background: rgba(255,255,255,.03); border: 1px solid #1c3058;
+  border-radius: 10px; padding: 8px 4px; text-align: center;
+}
+.sc-insight-val { font-family: var(--ff-d); font-size: 15px; letter-spacing: .5px; color: #3d9eff; }
+.sc-insight-lbl { font-size: 8px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: #3d5a80; margin-top: 2px; }
+
+/* OVER BARS */
+.sc-over-wrap { padding: 0 16px 12px; }
+.sc-over-title {
+  font-size: 9px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
+  color: #3d5a80; margin-bottom: 7px;
+}
+.sc-over-bars {
+  display: flex; align-items: flex-end; gap: 2px;
+  height: 40px; background: rgba(255,255,255,.02);
+  border-radius: 6px; padding: 4px 4px 0;
+}
+.sc-over-bar-wrap {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; gap: 1px; height: 100%;
+  justify-content: flex-end;
+}
+.sc-bar {
+  border-radius: 2px 2px 0 0; min-height: 2px; width: 100%;
+}
+.sc-bar-t1 { background: #b4ff45; opacity: .9; }
+.sc-bar-t2 { background: #ffb820; opacity: .9; }
+.sc-over-num { font-size: 7px; color: #3d5a80; font-weight: 700; flex-shrink: 0; }
+
+/* FOOTER */
 .sc-footer {
+  background: rgba(0,0,0,.2); border-top: 1px solid #1c3058;
+  padding: 9px 16px;
   display: flex; align-items: center; justify-content: space-between;
 }
-.sc-made-by { font-size: 10px; color: var(--t3); font-weight: 600; }
-.sc-made-by strong { color: var(--g); }
-.sc-watermark { font-size: 10px; color: var(--t3); }
+.sc-made-by { font-size: 10px; color: #7a9ac4; font-weight: 700; }
+.sc-made-by strong { color: #b4ff45; }
+.sc-watermark { font-size: 9px; color: #3d5a80; font-weight: 600; letter-spacing: .5px; }
 
-/* Share modal wrapper */
-.share-modal-wrap {
+
+/* ── SHARE MODAL ── */
+.share-modal {
   position: fixed; inset: 0;
-  background: rgba(7,16,31,.95);
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  z-index: 350; display: flex; align-items: flex-start;
-  justify-content: center; overflow-y: auto;
-  padding: 20px 16px calc(40px + var(--safe-b));
-  padding-top: max(20px, calc(var(--safe-t) + 16px));
+  background: rgba(7,16,31,.94);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  display: flex; align-items: flex-start; justify-content: center;
+  z-index: 300;
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 16px 16px 40px;
+  box-sizing: border-box;
 }
 .share-modal-inner {
-  width: 100%; max-width: 420px;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  padding-bottom: 16px;
 }
-/* Share buttons */
-.share-btn-row { display: flex; gap: 10px; }
+.share-btn-row {
+  display: flex; gap: 10px; margin-top: 12px;
+}
 .share-btn-row .btn { flex: 1; }
+.share-hint {
+  font-size: 11px; color: var(--t3); text-align: center;
+  margin-top: 8px; font-weight: 600; line-height: 1.5;
+}
+
 
 @media(max-width:360px){
   .pg { padding-left:12px; padding-right:12px; }
@@ -822,8 +910,8 @@ canvas { border-radius:var(--r2); width:100%!important; }
 <div class="pg">
   <div class="home-hero">
     <span class="home-icon">🏏</span>
-    <div class="home-title">Gully Cricket</div>
-    <div class="home-sub">Your street · Your rules · Your scorecard</div>
+    <div class="home-title">Turf Cricket</div>
+    <div class="home-sub">Your game · Your rules · Your scorecard</div>
   </div>
   <button class="home-cta" onclick="showScreen('setupScreen')">＋ NEW MATCH</button>
 
@@ -1080,33 +1168,44 @@ canvas { border-radius:var(--r2); width:100%!important; }
 <div class="share-modal-wrap" id="shareModal" class="share-modal" style="display:none">
   <div class="share-modal-inner">
 
-    <!-- The screenshot-ready card -->
+    <!-- Share card — renders as PNG image -->
     <div id="shareCard">
+
+      <!-- Header -->
       <div class="sc-header">
         <span class="sc-logo">🏏</span>
-        <span class="sc-app-name">GULLY CRICKET</span>
+        <span class="sc-app-name">TURF CRICKET</span>
         <span class="sc-date" id="scDate"></span>
       </div>
 
-      <div class="sc-vs" id="scVsBlock">
-        <div id="scTeam1Block">
+      <!-- Teams vs Teams — centred -->
+      <div class="sc-vs">
+        <div class="sc-team-block" id="scTeam1Block">
           <div class="sc-team-name" id="scT1Name" style="color:var(--g)"></div>
           <div class="sc-team-score" id="scT1Score" style="color:var(--g)"></div>
-          <div class="sc-team-meta" id="scT1Meta"></div>
+          <div class="sc-team-overs" id="scT1Overs"></div>
+          <div class="sc-team-crr" id="scT1Crr"></div>
         </div>
-        <div class="sc-vs-divider"><span class="sc-vs-text">VS</span></div>
-        <div id="scTeam2Block">
+        <div class="sc-vs-mid">
+          <div class="sc-vs-line"></div>
+          <div class="sc-vs-circle">VS</div>
+          <div class="sc-vs-line"></div>
+        </div>
+        <div class="sc-team-block" id="scTeam2Block">
           <div class="sc-team-name" id="scT2Name" style="color:var(--am)"></div>
           <div class="sc-team-score" id="scT2Score" style="color:var(--am)"></div>
-          <div class="sc-team-meta" id="scT2Meta"></div>
+          <div class="sc-team-overs" id="scT2Overs"></div>
+          <div class="sc-team-crr" id="scT2Crr"></div>
         </div>
       </div>
 
+      <!-- Result banner -->
       <div class="sc-result-banner">
         <div class="sc-result-winner" id="scWinner"></div>
         <div class="sc-result-margin" id="scMargin"></div>
       </div>
 
+      <!-- Main stats -->
       <div class="sc-stats-row">
         <div class="sc-stat-cell">
           <div class="sc-stat-val" id="scOvers"></div>
@@ -1126,19 +1225,41 @@ canvas { border-radius:var(--r2); width:100%!important; }
         </div>
       </div>
 
+      <!-- Match insights -->
+      <div class="sc-insights">
+        <div class="sc-insight-cell">
+          <div class="sc-insight-val" id="scDots" style="color:var(--t2)"></div>
+          <div class="sc-insight-lbl">Dot Balls</div>
+        </div>
+        <div class="sc-insight-cell">
+          <div class="sc-insight-val" id="scBoundaries" style="color:var(--cy)"></div>
+          <div class="sc-insight-lbl">Boundaries</div>
+        </div>
+        <div class="sc-insight-cell">
+          <div class="sc-insight-val" id="scExtras" style="color:var(--pu)"></div>
+          <div class="sc-insight-lbl">Extras</div>
+        </div>
+      </div>
+
+      <!-- Over-by-over bars -->
+      <div class="sc-over-wrap">
+        <div class="sc-over-title" id="scOverTitle">Runs Per Over</div>
+        <div class="sc-over-bars" id="scOverBars"></div>
+      </div>
+
+      <!-- Footer -->
       <div class="sc-footer">
         <span class="sc-made-by">Made by <strong>Abhishek Singh</strong></span>
-        <span class="sc-watermark">Gully Cricket App</span>
+        <span class="sc-watermark">🏏 Turf Cricket App</span>
       </div>
+
     </div>
 
-    <div class="share-btn-row">
-      <button class="btn btn-gh" onclick="closeShareCard()">✕ Close</button>
-      <button class="btn btn-g" onclick="downloadShareCard()">📸 Screenshot</button>
+    <div style="display:flex;gap:10px;margin-top:12px;">
+      <button class="btn btn-gh" onclick="closeShareCard()" style="padding:14px 18px;flex-shrink:0;">✕</button>
+      <button class="btn btn-g" id="shareTriggerBtn" onclick="downloadShareCard()" style="flex:1;font-size:16px;">📲 Share</button>
     </div>
-    <div style="font-size:11px;color:var(--t3);text-align:center;margin-top:8px;font-weight:600;">
-      Take a screenshot of the card above to share on WhatsApp 📲
-    </div>
+    <div id="shareHintTxt" style="font-size:11px;color:var(--t3);text-align:center;margin-top:8px;font-weight:600;line-height:1.5;display:none;"></div>
   </div>
 </div>
 
@@ -1401,7 +1522,7 @@ function checkMilestones(inn, newBall) {
 
   var teamKey = inn.team;
 
-  // ── BALL-LEVEL events (wickets only — 4/6 popups too noisy for gully cricket) ──
+  // ── BALL-LEVEL events (wickets only — 4/6 popups too noisy for turf cricket) ──
   if (newBall.w && newBall.r > 0) {
     queueMilestone('🚨', 'RUN OUT!', newBall.r + ' run'+(newBall.r>1?'s':'')+' completed', true);
   } else if (newBall.w) {
@@ -1530,52 +1651,286 @@ function openShareCard() {
       } else { return; }
     } catch(ex) { return; }
   }
-  var r1 = totalRuns(m.inn1.balls), r2 = totalRuns(m.inn2.balls);
-  var w1 = totalWickets(m.inn1.balls), w2 = totalWickets(m.inn2.balls);
-  var l1 = legalBalls(m.inn1.balls),   l2 = legalBalls(m.inn2.balls);
-
-  // Totals across both innings
-  var allBalls = m.inn1.balls.concat(m.inn2.balls);
-  var totalFours = countBalls(m.inn1.balls,'four') + countBalls(m.inn2.balls,'four');
-  var totalSixes = countBalls(m.inn1.balls,'six')  + countBalls(m.inn2.balls,'six');
-  var totalWkts  = w1 + w2;
-
-  document.getElementById('scDate').textContent = m.date || new Date().toLocaleDateString();
-
-  document.getElementById('scT1Name').textContent  = m.inn1.team;
-  document.getElementById('scT1Score').textContent = r1 + '/' + w1;
-  document.getElementById('scT1Meta').textContent  = Math.floor(l1/6)+'.'+l1%6+' ov · CRR '+crr(m.inn1.balls);
-
-  document.getElementById('scT2Name').textContent  = m.inn2.team;
-  document.getElementById('scT2Score').textContent = r2 + '/' + w2;
-  document.getElementById('scT2Meta').textContent  = Math.floor(l2/6)+'.'+l2%6+' ov · CRR '+crr(m.inn2.balls);
-
-  var w = m.winner === 'TIE' ? "🤝 It's a Tie!" : '🏆 ' + m.winner;
-  document.getElementById('scWinner').textContent = w;
-  document.getElementById('scMargin').textContent = m.margin || '';
-
-  document.getElementById('scOvers').textContent  = m.overs;
-  document.getElementById('scWkts').textContent   = totalWkts;
-  document.getElementById('scFours').textContent  = totalFours;
-  document.getElementById('scSixes').textContent  = totalSixes;
-
+  populateShareCard(m);
+  _pendingShareBlob = null;
   document.getElementById('shareModal').style.display = 'flex';
+  // Pre-render card to blob while user is reading it — ready when they tap Share
+  setTimeout(preRenderShareCard, 150);
 }
 
 function closeShareCard() {
   document.getElementById('shareModal').style.display = 'none';
 }
 
-function downloadShareCard() {
-  // Guide user to screenshot — no external library needed
-  var hint = document.querySelector('#shareModal .share-modal-inner div:last-child');
-  hint.style.color = 'var(--g)';
-  hint.textContent = '📸 Take a screenshot now — the card is ready!';
-  setTimeout(function() {
-    hint.style.color = 'var(--t3)';
-    hint.textContent = 'Take a screenshot of the card above to share on WhatsApp 📲';
-  }, 3000);
+// Open share card from a saved record (past matches / detail screen)
+function shareFromRecord(idx) {
+  try {
+    var all = JSON.parse(localStorage.getItem('gullyRecords') || '[]');
+    var rec = all[idx];
+    if (!rec) return;
+
+    // Build a match-like object from the record
+    var m;
+    if (rec.type === 'single') {
+      m = {
+        inn1:   rec.match.inn1,
+        inn2:   rec.match.inn2,
+        overs:  rec.overs,
+        wickets: rec.wickets,
+        winner: rec.winner,
+        margin: rec.margin,
+        date:   rec.date
+      };
+    } else {
+      // Series: show last completed match
+      var lastMatch = rec.matches[rec.matches.length - 1];
+      m = {
+        inn1:   lastMatch.inn1,
+        inn2:   lastMatch.inn2,
+        overs:  rec.overs,
+        wickets: rec.wickets,
+        winner: rec.seriesWinner ? rec.team1+' '+( rec.wins[rec.team1]||0)+' – '+(rec.wins[rec.team2]||0)+' '+rec.team2 : lastMatch.winner,
+        margin: rec.seriesWinner ? 'Series result' : lastMatch.margin,
+        date:   rec.date
+      };
+    }
+    populateShareCard(m);
+    document.getElementById('shareModal').style.display = 'flex';
+  } catch(e) { console.warn('shareFromRecord:', e); }
 }
+
+// Shared populate function used by both result screen and past match share
+function populateShareCard(m) {
+  var r1 = totalRuns(m.inn1.balls),    r2 = totalRuns(m.inn2.balls);
+  var w1 = totalWickets(m.inn1.balls), w2 = totalWickets(m.inn2.balls);
+  var l1 = legalBalls(m.inn1.balls),   l2 = legalBalls(m.inn2.balls);
+
+  var fours1  = countBalls(m.inn1.balls,'four'),  fours2  = countBalls(m.inn2.balls,'four');
+  var sixes1  = countBalls(m.inn1.balls,'six'),   sixes2  = countBalls(m.inn2.balls,'six');
+  var dots1   = countBalls(m.inn1.balls,'dot'),   dots2   = countBalls(m.inn2.balls,'dot');
+  var wides1  = countBalls(m.inn1.balls,'wide'),  wides2  = countBalls(m.inn2.balls,'wide');
+  var nbs1    = countBalls(m.inn1.balls,'nb'),    nbs2    = countBalls(m.inn2.balls,'nb');
+
+  var totalFours      = fours1 + fours2;
+  var totalSixes      = sixes1 + sixes2;
+  var totalDots       = dots1 + dots2;
+  var totalBoundaries = totalFours + totalSixes;
+  var totalExtras     = wides1 + wides2 + nbs1 + nbs2;
+
+  // Header
+  document.getElementById('scDate').textContent = m.date || new Date().toLocaleDateString();
+
+  // Team 1
+  document.getElementById('scT1Name').textContent  = m.inn1.team;
+  document.getElementById('scT1Score').textContent = r1 + '/' + w1;
+  document.getElementById('scT1Overs').textContent = Math.floor(l1/6)+'.'+l1%6+' overs';
+  document.getElementById('scT1Crr').textContent   = 'CRR ' + crr(m.inn1.balls);
+
+  // Team 2
+  document.getElementById('scT2Name').textContent  = m.inn2.team;
+  document.getElementById('scT2Score').textContent = r2 + '/' + w2;
+  document.getElementById('scT2Overs').textContent = Math.floor(l2/6)+'.'+l2%6+' overs';
+  document.getElementById('scT2Crr').textContent   = 'CRR ' + crr(m.inn2.balls);
+
+  // Result
+  document.getElementById('scWinner').textContent = m.winner === 'TIE' ? "🤝 It's a Tie!" : '🏆 ' + m.winner;
+  document.getElementById('scMargin').textContent = m.margin || '';
+
+  // Main stats
+  document.getElementById('scOvers').textContent = m.overs;
+  document.getElementById('scWkts').textContent  = w1 + w2;
+  document.getElementById('scFours').textContent = totalFours;
+  document.getElementById('scSixes').textContent = totalSixes;
+
+  // Insights
+  document.getElementById('scDots').textContent       = totalDots;
+  document.getElementById('scBoundaries').textContent = totalBoundaries;
+  document.getElementById('scExtras').textContent     = totalExtras;
+
+  // Over-by-over mini bar chart
+  var overBarsEl = document.getElementById('scOverBars');
+  if (overBarsEl) {
+    overBarsEl.innerHTML = '';
+    var log1 = overLogData(m.inn1.balls);
+    var log2 = overLogData(m.inn2.balls);
+    var maxOvers = Math.max(log1.length, log2.length, 1);
+    var allRuns  = log1.map(function(o){return o.runs;}).concat(log2.map(function(o){return o.runs;}));
+    var maxRuns  = Math.max.apply(null, allRuns) || 1;
+
+    document.getElementById('scOverTitle').textContent =
+      m.inn1.team.substring(0,8) + ' (🟢) vs ' + m.inn2.team.substring(0,8) + ' (🟡) — Runs Per Over';
+
+    for (var i = 0; i < maxOvers; i++) {
+      var runs1 = log1[i] ? log1[i].runs : 0;
+      var runs2 = log2[i] ? log2[i].runs : 0;
+      var wrap  = document.createElement('div');
+      wrap.className = 'sc-over-bar-wrap';
+
+      var b1 = document.createElement('div');
+      b1.className = 'sc-bar sc-bar-t1';
+      b1.style.height = Math.max(3, Math.round((runs1 / maxRuns) * 30)) + 'px';
+      b1.title = 'Ov ' + (i+1) + ' · ' + m.inn1.team + ': ' + runs1;
+
+      var b2 = document.createElement('div');
+      b2.className = 'sc-bar sc-bar-t2';
+      b2.style.height = Math.max(3, Math.round((runs2 / maxRuns) * 30)) + 'px';
+      b2.title = 'Ov ' + (i+1) + ' · ' + m.inn2.team + ': ' + runs2;
+
+      var lbl = document.createElement('div');
+      lbl.className = 'sc-over-num';
+      lbl.textContent = i + 1;
+
+      wrap.appendChild(b1);
+      wrap.appendChild(b2);
+      wrap.appendChild(lbl);
+      overBarsEl.appendChild(wrap);
+    }
+  }
+}
+
+// ── SHARE CARD AS IMAGE ──
+// How it works:
+// 1. When modal opens → html2canvas renders card to PNG blob silently
+// 2. User taps 📲 Share → if blob ready, call navigator.share() inside tap (user gesture preserved)
+// 3. If blob not ready yet → fallback: render sync then download
+// 4. If navigator.share not available → download to gallery
+var _pendingShareBlob = null;
+var _shareRenderBusy  = false;
+
+function preRenderShareCard() {
+  _pendingShareBlob = null;
+  _shareRenderBusy  = true;
+  var card = document.getElementById('shareCard');
+  var sbtn = document.getElementById('shareTriggerBtn');
+  if (sbtn) { sbtn.disabled = true; sbtn.innerHTML = '⏳ Preparing…'; }
+
+  // Temporarily make modal bg transparent so card captures cleanly
+  var modal = document.getElementById('shareModal');
+  var origBg = modal.style.background;
+  modal.style.background = 'rgba(7,16,31,0.98)';
+
+  html2canvas(card, {
+    backgroundColor: '#07101f',
+    scale: 2,
+    useCORS: true,
+    logging: false,
+    removeContainer: true,
+    ignoreElements: function(el) {
+      // Ignore the buttons below the card
+      return el.classList && (el.classList.contains('share-btn-row') || el.id === 'shareHintTxt');
+    }
+  }).then(function(canvas) {
+    modal.style.background = origBg;
+    canvas.toBlob(function(blob) {
+      _pendingShareBlob = blob || null;
+      _shareRenderBusy  = false;
+      var sbtn = document.getElementById('shareTriggerBtn');
+      if (sbtn) { sbtn.disabled = false; sbtn.innerHTML = '📲 Share'; }
+    }, 'image/png', 1.0);
+  }).catch(function(err) {
+    modal.style.background = origBg;
+    _shareRenderBusy = false;
+    console.warn('html2canvas:', err);
+    var sbtn = document.getElementById('shareTriggerBtn');
+    if (sbtn) { sbtn.disabled = false; sbtn.innerHTML = '📲 Share'; }
+  });
+}
+
+function downloadShareCard() {
+  // This runs INSIDE a user tap — gesture is live
+  if (_shareRenderBusy) {
+    var sbtn = document.getElementById('shareTriggerBtn');
+    if (sbtn) sbtn.innerHTML = '⏳ Almost ready…';
+    // Retry after 600ms
+    setTimeout(downloadShareCard, 600);
+    return;
+  }
+
+  if (_pendingShareBlob) {
+    // Best path: blob ready, share immediately
+    doShare(_pendingShareBlob);
+  } else {
+    // Blob not ready — show loading, then try to share
+    var sbtn = document.getElementById('shareTriggerBtn');
+    if (sbtn) { sbtn.disabled = true; sbtn.innerHTML = '⏳ Loading…'; }
+    var card = document.getElementById('shareCard');
+    html2canvas(card, { backgroundColor:'#07101f', scale:2, useCORS:true, logging:false })
+      .then(function(canvas) {
+        canvas.toBlob(function(blob) {
+          if (sbtn) { sbtn.disabled = false; sbtn.innerHTML = '📲 Share'; }
+          if (blob) doShare(blob);
+          else showShareHint('❌ Could not create image. Try again.');
+        }, 'image/png', 1.0);
+      }).catch(function() {
+        if (sbtn) { sbtn.disabled = false; sbtn.innerHTML = '📲 Share'; }
+        showShareHint('❌ Image failed. Try again.');
+      });
+  }
+}
+
+function doShare(blob) {
+  var file = new File([blob], 'gully-cricket-scorecard.png', { type: 'image/png' });
+
+  // navigator.share with files — works on Android Chrome + iOS Safari 15.1+
+  // REQUIRES: HTTPS or localhost (not file://)
+  if (typeof navigator.share === 'function' &&
+      typeof navigator.canShare === 'function' &&
+      navigator.canShare({ files: [file] })) {
+
+    navigator.share({
+      files:  [file],
+      title:  'Turf Cricket Scorecard 🏏',
+      text:   'Check out our match!'
+    }).then(function() {
+      closeShareCard();
+    }).catch(function(err) {
+      // User cancelled = AbortError, that's fine. Anything else = fallback
+      if (err && err.name !== 'AbortError') {
+        fallbackDownload(file);
+      }
+    });
+
+  } else if (typeof navigator.share === 'function') {
+    // Share API exists but files not supported — share text + download image
+    fallbackDownload(file);
+    navigator.share({ title: 'Turf Cricket 🏏', text: 'Check out our match scorecard!' })
+      .catch(function(){});
+
+  } else {
+    // No share API at all (desktop browser / old Android) — download
+    fallbackDownload(file);
+  }
+}
+
+function fallbackDownload(file) {
+  // Creates a download link — image goes to phone gallery / Downloads folder
+  try {
+    var url = URL.createObjectURL(file);
+    var a   = document.createElement('a');
+    a.href = url;
+    a.download = 'gully-cricket-scorecard.png';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
+    showShareHint('✅ Image saved! Open your gallery and share on WhatsApp 📲');
+  } catch(e) {
+    showShareHint('📸 Take a screenshot of the card above to share');
+  }
+}
+
+function showShareHint(msg) {
+  var hint = document.getElementById('shareHintTxt');
+  if (!hint) return;
+  hint.style.display = 'block';
+  hint.style.color = msg.startsWith('✅') ? 'var(--g)' : msg.startsWith('❌') ? 'var(--rd)' : 'var(--am)';
+  hint.textContent = msg;
+  setTimeout(function() {
+    hint.style.display = 'none';
+    hint.textContent = '';
+  }, 4000);
+}
+
 // ═══════════════════════════════════════
 //  TOSS
 // ═══════════════════════════════════════
@@ -1789,6 +2144,7 @@ function endMatch(){
   if(winner!=='TIE') series.wins[winner]++; else series.ties++;
   series.matches.push(Object.assign({},match));
   saveToStorage();
+  clearIncompleteMatch();
   const mw=Math.ceil(series.totalMatches/2),t1w=series.wins[series.team1],t2w=series.wins[series.team2];
   const mp=series.matchNum,decided=t1w>=mw||t2w>=mw||mp>=series.totalMatches;
   document.getElementById('resultTrophy').textContent=decided&&series.totalMatches>1?'🏆':'🏏';
@@ -1900,6 +2256,34 @@ function loadPastMatches(){
       cont.innerHTML='<div class="empty"><span class="ei">🏏</span><p>No matches yet.<br>Start your first game!</p></div>';
       return;
     }
+    // Check for incomplete match and show resume card
+    var incomplete = null;
+    try { incomplete = JSON.parse(localStorage.getItem('gullyIncomplete')||'null'); } catch(e){}
+    if (incomplete && incomplete.match) {
+      var im = incomplete.match, is = incomplete.series;
+      var inn = im.innings === 1 ? im.inn1 : im.inn2;
+      var runs = totalRuns(inn.balls), wkts = totalWickets(inn.balls);
+      var legal = legalBalls(inn.balls);
+      var resumeCard = document.createElement('div');
+      resumeCard.className = 'card';
+      resumeCard.style.cssText = 'margin-bottom:12px;border-color:var(--rd);background:linear-gradient(135deg,#1c0a0e,#0d1628)';
+      resumeCard.innerHTML =
+        '<div style="display:flex;align-items:center;gap:10px;">' +
+        '<div style="font-size:28px;flex-shrink:0">🔴</div>' +
+        '<div style="flex:1;min-width:0">' +
+        '<div style="font-weight:800;font-size:14px;color:var(--t1)">' + im.inn1.team + ' vs ' + im.inn2.team +
+          '<span class="mc-live">LIVE</span></div>' +
+        '<div style="font-size:13px;font-weight:700;color:var(--rd);margin:2px 0">' +
+          (im.innings===1?'1st':'2nd') + ' Innings · ' + inn.team + ' batting</div>' +
+        '<div style="font-size:12px;color:var(--t3);font-weight:600">' +
+          runs + '/' + wkts + ' · Ov ' + Math.floor(legal/6) + '.' + legal%6 +
+          ' · Saved at ' + (incomplete.savedAt||'') + '</div>' +
+        '</div>' +
+        '<button class="mc-resume" onclick="resumeMatch()">▶ Resume</button>' +
+        '</div>';
+      cont.appendChild(resumeCard);
+    }
+
     // Header with clear all
     const hdr=document.createElement('div'); hdr.className='past-hdr';
     hdr.innerHTML='<span class="lbl" style="margin-bottom:0">Past Matches</span>'+
@@ -1927,6 +2311,10 @@ function loadPastMatches(){
           '<div class="mc-meta">'+r.date+' · '+r.overs+' ov · '+r.matches.length+'/'+r.totalMatches+' matches</div>'+
           '</div>';
       }
+      const sb=document.createElement('button');
+      sb.className='share-record-btn'; sb.title='Share scorecard'; sb.textContent='📲';
+      sb.onclick=(e)=>{e.stopPropagation();shareFromRecord(i);};
+      mc.appendChild(sb);
       const del=document.createElement('button');
       del.className='mc-del'; del.textContent='🗑️';
       del.onclick=(e)=>{e.stopPropagation();deleteRecord(i);};
@@ -1981,6 +2369,15 @@ function viewDetail(idx){
     const cont=document.getElementById('detailContent'); cont.innerHTML='';
     document.getElementById('detailTitle').textContent=
       r.type==='single'?r.team1+' vs '+r.team2:r.team1+' vs '+r.team2+' Series';
+    // Share button in detail nav
+    var existingShareBtn = document.getElementById('detailShareBtn');
+    if (existingShareBtn) existingShareBtn.remove();
+    var detailShareBtn = document.createElement('button');
+    detailShareBtn.id = 'detailShareBtn';
+    detailShareBtn.className = 'share-record-btn';
+    detailShareBtn.innerHTML = '📲 Share';
+    detailShareBtn.onclick = (function(capturedIdx){ return function(){ shareFromRecord(capturedIdx); }; })(idx);
+    document.querySelector('#detailScreen .nav').appendChild(detailShareBtn);
     if(r.type==='series'&&r.seriesWinner){
       const bw=document.createElement('div'); bw.className='sw-card';
       const t1w=r.wins[r.team1]||0,t2w=r.wins[r.team2]||0;
@@ -2061,7 +2458,45 @@ function closeDetailScreen(){
   detailCharts=[];
   loadPastMatches(); showScreen('homeScreen');
 }
-function goHome(){ match=null; series=null; loadPastMatches(); showScreen('homeScreen'); }
+function goHome(){
+  // If a match is in progress, save it as incomplete so user can resume
+  if (match && match.innings && !match.inn2.done) {
+    saveIncompleteMatch();
+  } else {
+    clearIncompleteMatch();
+  }
+  match=null; series=null;
+  loadPastMatches();
+  showScreen('homeScreen');
+}
+
+function saveIncompleteMatch() {
+  try {
+    var state = {
+      match:  JSON.parse(JSON.stringify(match)),
+      series: JSON.parse(JSON.stringify(series)),
+      savedAt: new Date().toLocaleTimeString()
+    };
+    localStorage.setItem('gullyIncomplete', JSON.stringify(state));
+  } catch(e) { console.warn('saveIncomplete:', e); }
+}
+
+function clearIncompleteMatch() {
+  localStorage.removeItem('gullyIncomplete');
+}
+
+function resumeMatch() {
+  try {
+    var state = JSON.parse(localStorage.getItem('gullyIncomplete') || 'null');
+    if (!state) return;
+    match  = state.match;
+    series = state.series;
+    // Reset milestone state for the resumed innings
+    resetMilestones();
+    renderScoreScreen();
+    showScreen('scoreScreen');
+  } catch(e) { console.warn('resumeMatch:', e); }
+}
 
 // ═══════════════════════════════════════
 //  CONFETTI
